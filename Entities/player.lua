@@ -105,6 +105,13 @@ function Player.addCards(n)
     layoutHand()
 end
 
+function Player.addCard(id)
+    if #Player.hand >= HAND_LIMIT then return end
+    -- makeInstance is already in scope above
+    Player.hand[#Player.hand+1] = makeInstance(id)
+    layoutHand()
+end
+
 function Player.playCard(slot)
     local card = Player.hand[slot]; if not card then return end
     if card.type=="spell" and Player.spellCD>0 then return end

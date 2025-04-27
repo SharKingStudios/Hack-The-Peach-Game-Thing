@@ -16,15 +16,21 @@ local game = {}
 local map, cam, collider
 local walkers, tanks, critters = {}, {}, {}
 local CAMERA_SMOOTH, ZOOM = 8, 2
+game.gameoverFade = 0
 
 local DEBUG_DRAW_COLLIDERS = false
 
 -- shop & level state
 local Levels = {
   "introLevel.lua",
+  "introLevel.lua",
+  "level1.lua",
   "level2.lua",
   "level3.lua",
-  -- add more map filenames here
+  "level4.lua",
+  "level5_floor1.lua",
+  "level5_floor2.lua",
+  "level6.lua",
 }
 game.currentLevel = 1
 game.state        = "playing"   -- "playing" | "shop" | "fading"
@@ -83,11 +89,90 @@ local function slide(shape, dx, dy)
     return shape:center()
 end
 
+-- per‐level spawn config: { playerStart={x,y}, robotSpawns={{"walker",x,y}, ...} }
+local LevelConfigs = {
+  [1] = {
+    playerStart = {128,128},
+    robotSpawns = {
+      {"walker", 400,150},
+      {"walker", 500,300},
+      {"tank",   400,400},
+      {"tank",   500,400},
+      {"walker", 300,250},
+    }
+  },
+  [2] = {
+    playerStart = {700,500},
+    robotSpawns = {
+      {"walker", 250,200},
+      {"walker", 450,350},
+      {"tank",   350,450},
+      {"tank",   550,300},
+      {"walker", 300,300},
+    }
+  },
+  [3] = {
+    playerStart = {128,128},
+    robotSpawns = {
+      {"walker", 180,180},
+      {"walker", 520,320},
+      {"tank",   420,420},
+      {"tank",   480,360},
+      {"walker", 360,240},
+    }
+  },
+  [4] = {
+    playerStart = {128,128},
+    robotSpawns = {
+      {"walker", 180,180},
+      {"walker", 520,320},
+      {"tank",   420,420},
+      {"tank",   480,360},
+      {"walker", 360,240},
+    }
+  },
+  [5] = {
+    playerStart = {128,128},
+    robotSpawns = {
+      {"walker", 180,180},
+      {"walker", 520,320},
+      {"tank",   420,420},
+      {"tank",   480,360},
+      {"walker", 360,240},
+    }
+  },
+  [6] = {
+    playerStart = {128,128},
+    robotSpawns = {
+      {"walker", 180,180},
+      {"walker", 520,320},
+      {"tank",   420,420},
+      {"tank",   480,360},
+      {"walker", 360,240},
+    }
+  },
+  [7] = {
+    playerStart = {128,128},
+    robotSpawns = {
+      {"walker", 180,180},
+      {"walker", 520,320},
+      {"tank",   420,420},
+      {"tank",   480,360},
+      {"walker", 360,240},
+    }
+  },
+}
+
 local function spawnRobots()
-    table.insert(walkers, Walker.new(200, 150, collider))
-    table.insert(walkers, Walker.new(500, 300, collider))
-    table.insert(tanks,   Tank.new  (400, 400, collider))
-    table.insert(tanks,   Tank.new  (500, 400, collider))
+    local cfg = LevelConfigs[game.currentLevel] or LevelConfigs[1]
+    for _, r in ipairs(cfg.robotSpawns) do
+        local kind, x, y = r[1], r[2], r[3]
+        if kind == "walker" then
+            table.insert(walkers, Walker.new(x, y, collider))
+        else
+            table.insert(tanks,   Tank.new  (x, y, collider))
+        end
+    end
 end
 
 function game.load()
@@ -95,9 +180,16 @@ function game.load()
     collider = HC.new()
     cam      = Camera(0, 0); cam.scale = ZOOM
     game.collider = collider
-
+    
+    -- (re)load player shape but keep health/critterCount/hand
+    local start   = LevelConfigs[game.currentLevel].playerStart
+    local prevHP  = Player.health
     Player.load(collider)
     Projectiles.init(collider)
+    Player.health      = prevHP
+    Player.x, Player.y = start[1], start[2]
+    Player.shape:moveTo(Player.x, Player.y)
+    -- spawn this level’s robots
     spawnRobots()
 
     -- static walls from “Collide” object layer
@@ -156,7 +248,9 @@ function game:startShop()
         local cost    = love.math.random(1,5)
         local spacing = 220
         -- use the already-loaded image in Player.CARD_DB
-        local img     = data.img
+        -- ensure the card image is loaded
+        local img     = data.img or love.graphics.newImage(data.file)
+        data.img      = img
         table.insert(game.shop.cards, {
             id   = id,
             img  = img,
@@ -178,19 +272,46 @@ end
 function game:loadLevel(idx)
     if not Levels[idx] then return end
     game.currentLevel = idx
-    game.state = "playing"
+    game.state        = "playing"
+    -- clear existing robots & critters
     walkers, tanks, critters = {}, {}, {}
-    Player.resetPosition()
-    map = sti("Assets/Maps/"..Levels[idx])
+
+    -- load the new map and collider
+    map      = sti("Assets/Maps/"..Levels[idx])
     collider = HC.new()
-    cam = Camera(0,0); cam.scale = ZOOM
+    cam      = Camera(0,0); cam.scale = ZOOM
+    game.collider = collider
+
+    -- reposition player (preserve health, hand, critterCount)
+    local cfg    = LevelConfigs[idx]
+    local startX, startY = cfg.playerStart[1], cfg.playerStart[2]
+    local prevHP = Player.health
+    Player.load(collider)
+    Projectiles.init(collider)
+    Player.health      = prevHP
+    Player.x, Player.y = startX, startY
+    Player.shape:moveTo(Player.x, Player.y)
+
+    -- spawn robots from the level config
     spawnRobots()
+
+    -- rebuild static walls
+    for _, obj in ipairs(map.layers["Collide"].objects or {}) do
+        local s = collider:rectangle(obj.x, obj.y, obj.width, obj.height)
+        s.type = "wall"
+    end
 end
 
 -- -------------------------------------------------- update
 function game.update(dt)
     if game.state == "playing" then
         Player.update(dt, collider)
+
+        if game.state == "playing" and Player.health <= 0 then
+            game.state        = "gameover"
+            game.gameoverFade = 0
+            return
+        end
 
         local robots = {}
         for _, w in ipairs(walkers) do robots[#robots+1] = w end
@@ -271,11 +392,32 @@ function game.update(dt)
         if game.shop.fade >= 1 then
             game:loadLevel(game.currentLevel + 1)
         end
+    elseif game.state == "gameover" then
+        -- fade to black over ~2 seconds
+        game.gameoverFade = math.min(game.gameoverFade + dt * 0.5, 1)
+        return
     end
 end
 
 -- -------------------------------------------------- draw
 function game.draw()
+    if game.state == "gameover" then
+        local W, H = love.graphics.getWidth(), love.graphics.getHeight()
+        -- black fullscreen with fade
+        love.graphics.setColor(0, 0, 0, game.gameoverFade)
+        love.graphics.rectangle("fill", 0, 0, W, H)
+        -- draw Game Over text
+        love.graphics.setFont(hudFont)
+        love.graphics.setColor(1, 1, 1, game.gameoverFade)
+        local title = "GAME OVER"
+        local sub   = "Those poor critters..."
+        local w1 = hudFont:getWidth(title)
+        local w2 = hudFont:getWidth(sub)
+        love.graphics.print(title, W/2 - w1/2, H/2 - 20)
+        love.graphics.print(sub,   W/2 - w2/2, H/2 + 20)
+        return
+    end
+
     local W, H = love.graphics.getWidth(), love.graphics.getHeight()
     cam:attach(); love.graphics.translate(game.shX, game.shY)
         map:drawTileLayer("Ground"); map:drawTileLayer("Walls"); map:drawTileLayer("Props")
