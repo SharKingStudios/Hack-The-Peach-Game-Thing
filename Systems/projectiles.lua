@@ -1,5 +1,6 @@
 -- Systems/projectiles.lua
 local HC          = require "Libraries.HC"
+local Particles   = require "Systems.particles"
 local Projectiles = { list = {}, collider = nil }
 
 function Projectiles.init(collider)
@@ -24,15 +25,26 @@ function Projectiles.spawn(x, y, dx, dy, side, speed, life)
 end
 
 function Projectiles.update(dt)
-    for i = #Projectiles.list, 1, -1 do
+    for i=#Projectiles.list,1,-1 do
         local p = Projectiles.list[i]
-        p.x = p.x + p.dx * p.speed * dt
-        p.y = p.y + p.dy * p.speed * dt
-        p.shape:moveTo(p.x, p.y)
+        p.x = p.x + p.dx*p.speed*dt
+        p.y = p.y + p.dy*p.speed*dt
+        p.shape:moveTo(p.x,p.y)
         p.life = p.life - dt
-        if p.life <= 0 then
+
+        -- wall collision? ----------------------------------------------------
+        local hit = false
+        for other in pairs(Projectiles.collider:collisions(p.shape)) do
+            if other.type=="wall" then hit=true; break end
+        end
+        if hit or p.life<=0 then
+            Particles.burst{
+                x=p.x, y=p.y, count=30,
+                startCol={0.8,0.8,0.8}, endCol={0.4,0.4,0.4},
+                sizeStart=3, sizeEnd=0
+            }            
             Projectiles.collider:remove(p.shape)
-            table.remove(Projectiles.list, i)
+            table.remove(Projectiles.list,i)
         end
     end
 end

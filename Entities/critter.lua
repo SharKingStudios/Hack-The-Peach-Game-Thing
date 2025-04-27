@@ -2,7 +2,10 @@
 local Critter = {}
 Critter.__index = Critter
 
-local hopSpeed = 90
+local hopSpeed = 120
+
+-- load the 16×16 critter sprite once
+local critterImg = love.graphics.newImage("Assets/Sprites/critter.png")
 
 function Critter.new(x, y)
     return setmetatable({
@@ -15,22 +18,23 @@ function Critter:update(dt, player, Particles)
     local dx, dy = player.x - self.x, player.y - self.y
     local dist   = math.sqrt(dx*dx + dy*dy)
     if dist > 1 then
-        self.x = self.x + (dx/dist) * hopSpeed * dt
-        self.y = self.y + (dy/dist) * hopSpeed * dt
+        local nx, ny = dx/dist, dy/dist
+        self.x = self.x + nx * hopSpeed * dt
+        self.y = self.y + ny * hopSpeed * dt
     end
 
     -- pickup
-    if dist < 12 then
+    if dist < 14 then
         player.critterCount = (player.critterCount or 0) + 1
-        Particles.poof(self.x, self.y)
+        Particles.burst{ x=self.x, y=self.y, count=50, sizeStart=3 }
         self.dead = true
     end
 end
 
 function Critter:draw()
-    love.graphics.setColor(1, 1, 0)
-    love.graphics.rectangle("fill", self.x - 8, self.y - 8, 16, 16)
-    love.graphics.setColor(1,1,1)
+    -- center the 16×16 sprite on (x,y)
+    local w, h = critterImg:getWidth(), critterImg:getHeight()
+    love.graphics.draw(critterImg, self.x - w/2, self.y - h/2)
 end
 
 return Critter

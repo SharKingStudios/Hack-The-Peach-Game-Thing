@@ -21,12 +21,13 @@ local DEBUG_DRAW_COLLIDERS = false
 
 function love.keypressed(k)
     if k == "f1" then DEBUG_DRAW_COLLIDERS = not DEBUG_DRAW_COLLIDERS end
-    if k == "u" then Player.playCard(1)
-    elseif k == "i" then Player.playCard(2)
-    elseif k == "o" then Player.playCard(3)
-    elseif k == "j" then Player.playCard(4)
-    elseif k == "k" then Player.playCard(5)
+    if k == "y" then Player.playCard(1)
+    elseif k == "u" then Player.playCard(2)
+    elseif k == "i" then Player.playCard(3)
+    elseif k == "o" then Player.playCard(4)
+    elseif k == "p" then Player.playCard(5)
     end
+    if k=="h" then require("Systems.spells").melee(Player) end
 end
 
 -- -------------------------------------------------- HUD constants
@@ -114,6 +115,17 @@ local function resolveProjectiles()
         end
     end
 end
+
+local function cardTint(c)
+    local f = (c.y - c.targetY) / SPELL_COOLDOWN_OFFSET
+    if c.type=="spell" and f>0 then
+        local g = 1 - 0.6*f
+        love.graphics.setColor(g,g,g)
+    else
+        love.graphics.setColor(1,1,1)
+    end
+end
+
 -- -------------------------------------------------- update
 function game.update(dt)
     Player.update(dt, collider)
@@ -122,7 +134,8 @@ function game.update(dt)
     local robots = {}
     for _, w in ipairs(walkers) do robots[#robots+1] = w end
     for _, t in ipairs(tanks)   do robots[#robots+1] = t end
-    
+
+    require("Systems.spells").update(dt)
 
     for i = #walkers, 1, -1 do
         walkers[i]:update(dt, Player, robots,  game, slide)
@@ -205,6 +218,7 @@ function game.draw()
         for _,e in ipairs(render) do e:draw() end
 
         Projectiles.draw(); Particles.draw()
+        require("Systems.spells").draw()
         map:drawTileLayer("Above")
 
         -- DEBUG collider outlines (F1 toggle)
@@ -261,46 +275,22 @@ function game.draw()
         cx - 12 - hudFont:getWidth(countStr),               -- 12-px gap
         cy + (ch - hudFont:getHeight())/2)
 
-    -- hand of cards (bottom-right) ----------------------------------------------
-    local imgW, imgH = 731, 1024
-    local scale      = 0.15
-    local cardW, cardH = imgW*scale, imgH*scale
+        -- hand of cards (bottom-right) -------------------------------------------
+    -- cards already know their animated x, y, angle (set in Player.update)
+    local IMG_W, IMG_H = 731, 1024          -- raw sprite size (for pivot)
+    local SCALE        = 0.15               -- same scale you used before
 
-    local n = #Player.hand
-    if n > 0 then
-        --------------------------------------------------------------------------
-        -- FAN TUNABLES
-        local FAN_ANGLE_TOTAL  = math.rad(-60)   -- total left-to-right sweep
-        local FAN_X_TOTAL      = 300             -- x spread of the fan
-        local FAN_Y_TOTAL      = 0               -- y spread (positive = up)
-        --------------------------------------------------------------------------
+    for i = 1, #Player.hand do -- back to front
+        local c = Player.hand[i]
+        if c.img then
+            cardTint(c)
+            love.graphics.draw(c.img, c.x, c.y, c.angle, SCALE, SCALE, IMG_W/2, IMG_H/2)
+            love.graphics.setColor(1,1,1)
+        end
 
-        -- distribute over the *gaps* between cards
-        local stepAng = (n > 1) and FAN_ANGLE_TOTAL/(n-1) or 0
-        local stepX   = (n > 1) and FAN_X_TOTAL /(n-1) or 0
-        local stepY   = (n > 1) and FAN_Y_TOTAL /(n-1) or 0
-
-        -- anchor = centre of the *front* (top) card
-        local baseX = love.graphics.getWidth()  - 20 - cardW/2
-        local baseY = love.graphics.getHeight() - 20 - cardH/2
-
-        for i, card in ipairs(Player.hand) do
-            -- draw order: back first, front last
-            local back = n - i        -- 0 for front card, (n-1) for back
-            local ang  = -FAN_ANGLE_TOTAL/2 + back*stepAng
-            local x    = baseX - back*stepX
-            local y    = baseY - back*stepY
-
-            local img = card.img
-            if img and img:typeOf("Image") then
-                love.graphics.draw(img, x, y, ang, scale, scale,
-                                imgW/2, imgH/2)
-            else
-                love.graphics.setColor(0.2,0.2,0.2)
-                love.graphics.rectangle("fill",
-                    x-cardW/2, y-cardH/2, cardW, cardH, 6, 6)
-                love.graphics.setColor(1,1,1)
-            end
+        if c.charges and c.charges>1 then
+            love.graphics.setFont(hudFont)
+            love.graphics.print("x"..c.charges, c.x, c.y-130, 0, 0.5,0.5)
         end
     end
 
@@ -309,6 +299,8 @@ function game.draw()
     suit.Label("HP: "..Player.health,     suit.layout:row(120,20))
     suit.Label("Critters: "..(Player.critterCount or 0), suit.layout:row())
     if suit.Button("Quit", suit.layout:row(80,30)).hit then love.event.quit() end
+
+    Particles.drawGUI()
 end
 
 return game
