@@ -1,0 +1,14 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "expandedProjectPaths": [
+        "."
+    ],
+    "last.exportedFilePath": "C:/Users/Logan/Documents/GitHub/Hack-The-Peach-Game-Thing/Assets/Maps",
+    "last.imagePath": "C:/Users/Logan/Documents/GitHub/Hack-The-Peach-Game-Thing/Assets/Maps/Tilesets",
+    "map.lastUsedExportFilter": "All Files (*)",
+    "map.lastUsedFormat": "tmx",
+    "tileset.lastUsedFormat": "tsx"
+}
