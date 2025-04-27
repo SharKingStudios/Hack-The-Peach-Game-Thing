@@ -3,12 +3,100 @@
         "height": 4300,
         "width": 2
     },
+    "activeFile": "",
     "expandedProjectPaths": [
         "."
     ],
+    "file.lastUsedOpenFilter": "All Files (*)",
+    "fileStates": {
+        "TX Plant.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "TX Props.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "TX Shadow Plant.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "TX Shadow.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "TX Struct.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "TX Tileset Grass.tsx": {
+            "scaleInDock": 1
+        },
+        "TX Tileset Stone Ground.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "TX Tileset Wall.tsx": {
+            "scaleInDock": 1
+        },
+        "introLevel.tmx": {
+            "scale": 0.9262499999999999,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 485.29014844804334,
+                "y": 320.1079622132254
+            }
+        },
+        "introLevel.tmx#TX Tileset Grass": {
+            "scaleInDock": 1
+        },
+        "introLevel.tmx#TX Tileset Wall": {
+            "scaleInDock": 1
+        },
+        "level1.tmx": {
+            "expandedObjectLayers": [
+                3
+            ],
+            "scale": 0.5,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 377,
+                "y": 291
+            }
+        },
+        "level2.tmx": {
+            "scale": 1,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": -65.5,
+                "y": -163.5
+            }
+        },
+        "level3.tmx": {
+            "scale": 0.75,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": -6,
+                "y": -266
+            }
+        }
+    },
     "last.exportedFilePath": "C:/Users/Logan/Documents/GitHub/Hack-The-Peach-Game-Thing/Assets/Maps",
-    "last.imagePath": "C:/Users/Logan/Documents/GitHub/Hack-The-Peach-Game-Thing/Assets/Maps/Tilesets",
+    "last.imagePath": "C:/Users/jisoo/OneDrive/Documents/Hack-The-Peach-Game-Thing/Assets/Maps/Tilesets",
+    "map.fixedSize": false,
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
+    "openFiles": [
+    ],
+    "project": "untitled.tiled-project",
+    "recentFiles": [
+        "level1.tmx",
+        "TX Tileset Stone Ground.tsx",
+        "TX Struct.tsx",
+        "TX Shadow.tsx",
+        "TX Shadow Plant.tsx",
+        "TX Props.tsx",
+        "TX Plant.tsx"
+    ],
     "tileset.lastUsedFormat": "tsx"
 }
