@@ -19,6 +19,17 @@ local CAMERA_SMOOTH, ZOOM = 8, 2
 
 local DEBUG_DRAW_COLLIDERS = false
 
+-- shop & level state
+local Levels = {
+  "introLevel.lua",
+  "level2.lua",
+  "level3.lua",
+  -- add more map filenames here
+}
+game.currentLevel = 1
+game.state        = "playing"   -- "playing" | "shop" | "fading"
+game.shop         = { cards = {}, timer = 0, fade = 0 }
+
 function love.keypressed(k)
     if k == "f1" then DEBUG_DRAW_COLLIDERS = not DEBUG_DRAW_COLLIDERS end
     if k == "y" then Player.playCard(1)
@@ -52,7 +63,6 @@ HUD.CRITTER_H = (critterImg:typeOf("Image") and critterImg:getHeight() or 16)*HU
 -- bigger VCR font
 local hudFont = love.graphics.newFont("Assets/Fonts/VCR_OSD_MONO.ttf", 36)
 
-
 -- screen-shake state
 game.shT, game.shDur, game.shInt, game.shX, game.shY = 0, 0, 0, 0, 0
 function game.shake(int, dur) game.shInt, game.shDur, game.shT = int, dur, dur end
@@ -65,7 +75,6 @@ end
 -- helper that moves a shape and resolves overlaps
 local function slide(shape, dx, dy)
     shape:move(dx, dy)
-
     for other, sep in pairs(collider:collisions(shape)) do
         if other.type == "wall" then
             shape:move(sep.x, sep.y)
@@ -82,7 +91,7 @@ local function spawnRobots()
 end
 
 function game.load()
-    map      = sti("Assets/Maps/introLevel.lua")
+    map      = sti("Assets/Maps/"..Levels[game.currentLevel])
     collider = HC.new()
     cam      = Camera(0, 0); cam.scale = ZOOM
     game.collider = collider
@@ -126,89 +135,151 @@ local function cardTint(c)
     end
 end
 
+
+-- -------------------------------------------------- shop / level helpers
+function game:startShop()
+    -- switch into shop once
+    game.state       = "shop"
+    game.shop.timer  = 0
+    game.shop.fade   = 0
+    -- grab current screen dims
+    local W, H = love.graphics.getWidth(), love.graphics.getHeight()
+    -- build a pool of all card IDs from Player.CARD_DB
+    local pool = {}
+    for id,_ in pairs(Player.CARD_DB) do
+        pool[#pool+1] = id
+    end
+    game.shop.cards = {}
+    for i=1,3 do
+        local id      = pool[love.math.random(#pool)]
+        local data    = Player.CARD_DB[id]
+        local cost    = love.math.random(1,5)
+        local spacing = 220
+        -- use the already-loaded image in Player.CARD_DB
+        local img     = data.img
+        table.insert(game.shop.cards, {
+            id   = id,
+            img  = img,
+            cost = cost,
+            x    = W/2 + (i-2)*spacing,
+            y0   = H + 150,
+            y1   = H/2,
+            y    = H + 150,
+            w    = 180, h = 260,
+        })
+    end
+end
+
+function game:exitShop()
+    game.state = "fading"
+    game.shop.fade = 0
+end
+
+function game:loadLevel(idx)
+    if not Levels[idx] then return end
+    game.currentLevel = idx
+    game.state = "playing"
+    walkers, tanks, critters = {}, {}, {}
+    Player.resetPosition()
+    map = sti("Assets/Maps/"..Levels[idx])
+    collider = HC.new()
+    cam = Camera(0,0); cam.scale = ZOOM
+    spawnRobots()
+end
+
 -- -------------------------------------------------- update
 function game.update(dt)
-    Player.update(dt, collider)
+    if game.state == "playing" then
+        Player.update(dt, collider)
 
-    -- build one list that contains *all* active robots
-    local robots = {}
-    for _, w in ipairs(walkers) do robots[#robots+1] = w end
-    for _, t in ipairs(tanks)   do robots[#robots+1] = t end
+        local robots = {}
+        for _, w in ipairs(walkers) do robots[#robots+1] = w end
+        for _, t in ipairs(tanks)   do robots[#robots+1] = t end
 
-    require("Systems.spells").update(dt)
+        require("Systems.spells").update(dt)
 
-    for i = #walkers, 1, -1 do
-        walkers[i]:update(dt, Player, robots,  game, slide)
-        if walkers[i].hp <= 0 then
-            table.insert(critters, Critter.new(walkers[i].x, walkers[i].y))
-            collider:remove(walkers[i].shape)
-            table.remove(walkers, i)
+        for i = #walkers, 1, -1 do
+            walkers[i]:update(dt, Player, robots,  game, slide)
+            if walkers[i].hp <= 0 then
+                table.insert(critters, Critter.new(walkers[i].x, walkers[i].y))
+                collider:remove(walkers[i].shape)
+                table.remove(walkers, i)
+            end
+        end
+
+        for i = #tanks, 1, -1 do
+            tanks[i]:update(dt, Player, robots, game, slide)
+            if tanks[i].hp <= 0 then
+                table.insert(critters, Critter.new(tanks[i].x, tanks[i].y))
+                collider:remove(tanks[i].shape)
+                table.remove(tanks, i)
+            end
+        end
+
+        for i = #critters, 1, -1 do
+            critters[i]:update(dt, Player, Particles)
+            if critters[i].dead then table.remove(critters, i) end
+        end
+
+        if Player.critterCount >= Player.nextCardReward then
+            Player.addCards(3)
+            Player.nextCardReward = Player.nextCardReward + 5
+        end
+
+        Projectiles.update(dt)
+        resolveProjectiles()
+        Particles.update(dt)
+
+        if #Player.hand < 5 then
+            Player.addCards(1) -- testing
+        end
+
+        -- walls collision, camera, map update...
+        local cols = collider:collisions(Player.shape)
+        for other, sep in pairs(cols) do
+            if other.type == "wall" then
+                Player.shape:move(sep.x, sep.y)
+            end
+        end
+        Player.x, Player.y = Player.shape:center()
+
+        local nx = cam.x + (Player.x - cam.x) * math.min(dt*CAMERA_SMOOTH,1)
+        local ny = cam.y + (Player.y - cam.y) * math.min(dt*CAMERA_SMOOTH,1)
+        cam:lookAt(nx, ny)
+        if game.shT > 0 then
+            game.shT = game.shT - dt
+            local m = game.shInt * (game.shT / game.shDur)
+            game.shX = (love.math.random()*2-1)*m
+            game.shY = (love.math.random()*2-1)*m
+        else game.shX, game.shY = 0, 0 end
+
+        map:update(dt)
+
+        if levelCleared() then
+            game:startShop()
+        end
+
+    elseif game.state == "shop" then
+        -- animate cards in
+        game.shop.timer = math.min(game.shop.timer + dt, 1)
+        for _, card in ipairs(game.shop.cards) do
+            card.y = card.y0 + (card.y1 - card.y0) * game.shop.timer
+        end
+
+    elseif game.state == "fading" then
+        game.shop.fade = math.min(game.shop.fade + dt, 1)
+        if game.shop.fade >= 1 then
+            game:loadLevel(game.currentLevel + 1)
         end
     end
-
-    for i = #tanks, 1, -1 do
-        -- in game.lua, inside the tank loop
-        tanks[i]:update(dt, Player, robots, game, slide, collider)
-        if tanks[i].hp <= 0 then
-            table.insert(critters, Critter.new(tanks[i].x, tanks[i].y))
-            collider:remove(tanks[i].shape)
-            table.remove(tanks, i)
-        end
-    end
-
-    for i = #critters, 1, -1 do
-        critters[i]:update(dt, Player, Particles)
-        if critters[i].dead then table.remove(critters, i) end
-    end
-
-    -- card reward for rescued critters
-    if Player.critterCount >= Player.nextCardReward then
-        Player.addCards(3)
-        Player.nextCardReward = Player.nextCardReward + 5
-    end
-
-    Projectiles.update(dt)
-    resolveProjectiles()
-    Particles.update(dt)
-
-    if #Player.hand < 5 then
-        Player.addCards(1) -- add cards constantly for testing REMOVETHIS
-    end
-
-
-    -- push player out of walls
-    local cols = collider:collisions(Player.shape)
-    for other, sep in pairs(cols) do
-        if other.type == "wall" then
-            Player.shape:move(sep.x, sep.y)
-        end
-    end
-    Player.x, Player.y = Player.shape:center()
-
-    -- camera smoothing + shake
-    local nx = cam.x + (Player.x - cam.x) * math.min(dt*CAMERA_SMOOTH,1)
-    local ny = cam.y + (Player.y - cam.y) * math.min(dt*CAMERA_SMOOTH,1)
-    cam:lookAt(nx, ny)
-
-    if game.shT > 0 then
-        game.shT = game.shT - dt
-        local m = game.shInt * (game.shT / game.shDur)
-        game.shX = (love.math.random()*2-1)*m
-        game.shY = (love.math.random()*2-1)*m
-    else game.shX, game.shY = 0, 0 end
-
-    map:update(dt)
-
-    if levelCleared() then
-        -- TODO: push shop/state-change here
-    end    
 end
+
 -- -------------------------------------------------- draw
 function game.draw()
+    local W, H = love.graphics.getWidth(), love.graphics.getHeight()
     cam:attach(); love.graphics.translate(game.shX, game.shY)
         map:drawTileLayer("Ground"); map:drawTileLayer("Walls"); map:drawTileLayer("Props")
 
-        -- depth sort
         local render = {}
         for _,w in ipairs(walkers)  do table.insert(render, w) end
         for _,t in ipairs(tanks)    do table.insert(render, t) end
@@ -221,10 +292,12 @@ function game.draw()
         require("Systems.spells").draw()
         map:drawTileLayer("Above")
 
-        -- DEBUG collider outlines (F1 toggle)
+        -- Robots remaining
+        love.graphics.setColor(1,1,1)
+        love.graphics.print("Robots Remaining: "..(#walkers + #tanks), 10, H - 30)
+
         if DEBUG_DRAW_COLLIDERS then
             love.graphics.setColor(1, 0, 0, 0.5)
-            -- HC keeps its shapes in collider.shapes  (table indexed by shape)
             for s in pairs(collider.shapes) do
                 if s:typeOf("Circle") then
                     local cx, cy = s:center()
@@ -233,10 +306,29 @@ function game.draw()
                     love.graphics.polygon("line", s:unpack())
                 end
             end
-            love.graphics.setColor(1, 1, 1)
+            love.graphics.setColor(1,1,1)
         end
-
     cam:detach()
+
+    love.graphics.setFont(hudFont)
+
+    if game.state == "shop" then
+        -- darken screen
+        love.graphics.setColor(0,0,0,0.6)
+        love.graphics.rectangle("fill", 0,0, W,H)
+        -- critter currency
+        love.graphics.setColor(1,1,1)
+        love.graphics.print("Critters: "..Player.critterCount, W/2 - 60, 50)
+        -- draw cards
+        for _, card in ipairs(game.shop.cards) do
+            local affordable = Player.critterCount >= card.cost
+            love.graphics.setColor(affordable and 1 or 0.3, affordable and 1 or 0.3, affordable and 1 or 0.3)
+            love.graphics.draw(card.img, card.x, card.y, 0, card.w/card.img:getWidth(), card.h/card.img:getHeight(), card.img:getWidth()/2, card.img:getHeight()/2)
+            love.graphics.setColor(1,1,1)
+            love.graphics.print("Cost: "..card.cost, card.x - 30, card.y + card.h/2 + 10)
+        end
+        return
+    end
 
     -- -------------------------------------------------- HUD  (hearts / critters / hand)
     love.graphics.setFont(hudFont)
@@ -275,7 +367,7 @@ function game.draw()
         cx - 12 - hudFont:getWidth(countStr),               -- 12-px gap
         cy + (ch - hudFont:getHeight())/2)
 
-        -- hand of cards (bottom-right) -------------------------------------------
+    -- hand of cards (bottom-right) -------------------------------------------
     -- cards already know their animated x, y, angle (set in Player.update)
     local IMG_W, IMG_H = 731, 1024          -- raw sprite size (for pivot)
     local SCALE        = 0.15               -- same scale you used before
@@ -301,6 +393,31 @@ function game.draw()
     if suit.Button("Quit", suit.layout:row(80,30)).hit then love.event.quit() end
 
     Particles.drawGUI()
+
+    if game.state == "fading" then
+        love.graphics.setColor(0,0,0, game.shop.fade)
+        love.graphics.rectangle("fill", 0,0, W,H)
+    end
+end
+
+-- mouse click handling for shop
+function love.mousepressed(x,y,b)
+    if game.state=="shop" and b==1 then
+        if #Player.hand >= 5 then
+            game:exitShop()
+            return
+        end
+        for _, card in ipairs(game.shop.cards) do
+            if math.abs(x-card.x) < card.w/2 and math.abs(y-card.y) < card.h/2 then
+                if Player.critterCount >= card.cost then
+                    Player.critterCount = Player.critterCount - card.cost
+                    Player:addCard(card.id)
+                    game:exitShop()
+                end
+                return
+            end
+        end
+    end
 end
 
 return game

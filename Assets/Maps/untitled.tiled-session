@@ -9,42 +9,38 @@
     ],
     "file.lastUsedOpenFilter": "All Files (*)",
     "fileStates": {
-        "TX Plant.tsx": {
+        "": {
+            "scaleInDock": 1
+        },
+        "PlainsTEST.tsx": {
+            "dynamicWrapping": false,
             "scaleInDock": 1,
             "scaleInEditor": 1
+        },
+        "TX Plant.tsx": {
+            "scaleInDock": 1
         },
         "TX Props.tsx": {
-            "scaleInDock": 1,
-            "scaleInEditor": 1
+            "scaleInDock": 1
         },
         "TX Shadow Plant.tsx": {
-            "scaleInDock": 1,
-            "scaleInEditor": 1
+            "scaleInDock": 1
         },
         "TX Shadow.tsx": {
-            "scaleInDock": 1,
-            "scaleInEditor": 1
+            "scaleInDock": 1
         },
         "TX Struct.tsx": {
-            "scaleInDock": 1,
-            "scaleInEditor": 1
-        },
-        "TX Tileset Grass.tsx": {
             "scaleInDock": 1
         },
         "TX Tileset Stone Ground.tsx": {
-            "scaleInDock": 2,
-            "scaleInEditor": 1
-        },
-        "TX Tileset Wall.tsx": {
             "scaleInDock": 1
         },
         "introLevel.tmx": {
-            "scale": 0.9262499999999999,
-            "selectedLayer": 0,
+            "scale": 0.75,
+            "selectedLayer": 2,
             "viewCenter": {
-                "x": 479.8920377867748,
-                "y": 320.1079622132254
+                "x": 539.3333333333334,
+                "y": 265.99999999999994
             }
         },
         "introLevel.tmx#TX Tileset Grass": {
@@ -54,58 +50,170 @@
             "scaleInDock": 1
         },
         "level1.tmx": {
-            "expandedObjectLayers": [
-                3
-            ],
-            "scale": 1.5,
-            "selectedLayer": 3,
+            "scale": 2,
+            "selectedLayer": 0,
             "viewCenter": {
-                "x": 299.66666666666663,
-                "y": 206.33333333333337
+                "x": 78,
+                "y": 188.75
             }
+        },
+        "level1.tmx#TX Plant": {
+            "scaleInDock": 1
+        },
+        "level1.tmx#TX Props": {
+            "scaleInDock": 1
+        },
+        "level1.tmx#TX Shadow": {
+            "scaleInDock": 1
+        },
+        "level1.tmx#TX Shadow Plant": {
+            "scaleInDock": 1
+        },
+        "level1.tmx#TX Struct": {
+            "scaleInDock": 1
+        },
+        "level1.tmx#TX Tileset Grass": {
+            "scaleInDock": 1
+        },
+        "level1.tmx#TX Tileset Stone Ground": {
+            "scaleInDock": 1
+        },
+        "level1.tmx#TX Tileset Wall": {
+            "scaleInDock": 1
         },
         "level2.tmx": {
-            "expandedObjectLayers": [
-                2
-            ],
-            "scale": 1,
-            "selectedLayer": 3,
+            "scale": 0.5019042968749999,
+            "selectedLayer": 0,
             "viewCenter": {
-                "x": -65.5,
-                "y": -163.5
+                "x": -27.893763984823465,
+                "y": -196.25255375036477
             }
+        },
+        "level2.tmx#TX Plant": {
+            "scaleInDock": 1
+        },
+        "level2.tmx#TX Props": {
+            "scaleInDock": 1
+        },
+        "level2.tmx#TX Tileset Grass": {
+            "scaleInDock": 1
+        },
+        "level2.tmx#TX Tileset Wall": {
+            "scaleInDock": 1
         },
         "level3.tmx": {
-            "scale": 0.75,
-            "selectedLayer": 3,
+            "scale": 0.1331298828125,
+            "selectedLayer": 0,
             "viewCenter": {
-                "x": -6,
-                "y": -266
+                "x": 0,
+                "y": -3.7557307903907713
             }
+        },
+        "level3.tmx#TX Props": {
+            "scaleInDock": 1
+        },
+        "level3.tmx#TX Shadow": {
+            "scaleInDock": 1
+        },
+        "level3.tmx#TX Struct": {
+            "scaleInDock": 1
+        },
+        "level3.tmx#TX Tileset Grass": {
+            "scaleInDock": 1
+        },
+        "level3.tmx#TX Tileset Stone Ground": {
+            "scaleInDock": 1
+        },
+        "level3.tmx#TX Tileset Wall": {
+            "scaleInDock": 1
         },
         "level4.tmx": {
-            "scale": 1,
-            "selectedLayer": 3,
+            "scale": 0.1331298828125,
+            "selectedLayer": 0,
             "viewCenter": {
-                "x": -102.5,
-                "y": -220.5
+                "x": 0,
+                "y": -3.7557307903907713
             }
+        },
+        "level4.tmx#TX Props": {
+            "scaleInDock": 1
+        },
+        "level4.tmx#TX Tileset Grass": {
+            "scaleInDock": 1
+        },
+        "level4.tmx#TX Tileset Stone Ground": {
+            "scaleInDock": 1
+        },
+        "level4.tmx#TX Tileset Wall": {
+            "scaleInDock": 1
         },
         "level5_floor1.tmx": {
-            "scale": 1,
-            "selectedLayer": 3,
+            "scale": 0.17750651041666668,
+            "selectedLayer": 0,
             "viewCenter": {
-                "x": 233.5,
-                "y": 311.5
+                "x": 253.51182835136626,
+                "y": 509.8404547955254
             }
         },
+        "level5_floor1.tmx#TX Plant": {
+            "scaleInDock": 1
+        },
+        "level5_floor1.tmx#TX Props": {
+            "scaleInDock": 1
+        },
+        "level5_floor1.tmx#TX Struct": {
+            "scaleInDock": 1
+        },
+        "level5_floor1.tmx#TX Tileset Grass": {
+            "scaleInDock": 1
+        },
+        "level5_floor1.tmx#TX Tileset Stone Ground": {
+            "scaleInDock": 1
+        },
+        "level5_floor1.tmx#TX Tileset Wall": {
+            "scaleInDock": 1
+        },
         "level5_floor2.tmx": {
-            "scale": 1,
-            "selectedLayer": 3,
+            "scale": 0.17750651041666668,
+            "selectedLayer": 0,
             "viewCenter": {
-                "x": 338.5,
-                "y": 641.5
+                "x": 253.51182835136626,
+                "y": 256.3286264441592
             }
+        },
+        "level5_floor2.tmx#TX Props": {
+            "scaleInDock": 1
+        },
+        "level5_floor2.tmx#TX Shadow": {
+            "scaleInDock": 1
+        },
+        "level5_floor2.tmx#TX Tileset Grass": {
+            "scaleInDock": 1
+        },
+        "level5_floor2.tmx#TX Tileset Stone Ground": {
+            "scaleInDock": 1
+        },
+        "level5_floor2.tmx#TX Tileset Wall": {
+            "scaleInDock": 1
+        },
+        "level6.tmx": {
+            "scale": 0.17750651041666668,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 253.51182835136626,
+                "y": 256.3286264441592
+            }
+        },
+        "untitled.tmx": {
+            "scale": 2,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 234.25,
+                "y": 134.5
+            }
+        },
+        "untitled.tmx#PlainsTEST": {
+            "scaleInEditor": 1
         }
     },
     "last.exportedFilePath": "C:/Users/Logan/Documents/GitHub/Hack-The-Peach-Game-Thing/Assets/Maps",
@@ -117,18 +225,14 @@
     ],
     "project": "untitled.tiled-project",
     "recentFiles": [
-        "introLevel.tmx",
         "level5_floor2.tmx",
         "level5_floor1.tmx",
         "level4.tmx",
         "level3.tmx",
         "level2.tmx",
         "level1.tmx",
-        "TX Tileset Stone Ground.tsx",
-        "TX Struct.tsx",
-        "TX Shadow.tsx",
-        "TX Shadow Plant.tsx",
-        "TX Props.tsx"
+        "untitled.tmx",
+        "PlainsTEST.tsx"
     ],
     "tileset.lastUsedFormat": "tsx"
 }

@@ -50,7 +50,8 @@ local CARD_DB = {
  
     -- whirlpool = { file="Assets/Sprites/whirlpool_card.png", type="spell", charges=1,
                 --   onPlay=function(p,c) Spells.cast(p,"whirlpool") c.charges=c.charges-1 end },
- }
+}
+Player.CARD_DB = CARD_DB
  
 local function getCardDef(id)
     local d = CARD_DB[id]
